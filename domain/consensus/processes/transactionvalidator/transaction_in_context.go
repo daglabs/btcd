@@ -311,7 +311,7 @@ func (v *transactionValidator) calcTxSequenceLockFromReferencedUTXOEntries(stagi
 			// which this input was accepted within so we can
 			// compute the past median time for the block prior to
 			// the one which accepted this referenced output.
-			baseGHOSTDAGData, err := v.ghostdagDataStore.Get(v.databaseContext, stagingArea, povBlockHash)
+			baseGHOSTDAGData, err := v.ghostdagDataStore.Get(v.databaseContext, stagingArea, povBlockHash, false)
 			if err != nil {
 				return nil, err
 			}
@@ -329,7 +329,7 @@ func (v *transactionValidator) calcTxSequenceLockFromReferencedUTXOEntries(stagi
 				}
 
 				selectedParentGHOSTDAGData, err := v.ghostdagDataStore.Get(
-					v.databaseContext, stagingArea, baseGHOSTDAGData.SelectedParent())
+					v.databaseContext, stagingArea, baseGHOSTDAGData.SelectedParent(), false)
 				if err != nil {
 					return nil, err
 				}

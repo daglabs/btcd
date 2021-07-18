@@ -78,7 +78,10 @@ func (d *domain) InitStagingConsensus() error {
 	}
 
 	consensusFactory := consensus.NewFactory()
-	consensusInstance, err := consensusFactory.NewConsensus(d.consensusConfig, d.db, inactivePrefix)
+	cfg := *d.consensusConfig
+	cfg.ShouldNotAddGenesis = true
+
+	consensusInstance, err := consensusFactory.NewConsensus(&cfg, d.db, inactivePrefix)
 	if err != nil {
 		return err
 	}
@@ -184,13 +187,24 @@ func New(consensusConfig *consensus.Config, mempoolConfig *mempool.Config, db in
 		return nil, err
 	}
 
-	miningManagerFactory := miningmanager.NewFactory()
-	miningManager := miningManagerFactory.NewMiningManager(consensusInstance, &consensusConfig.Params, mempoolConfig)
-
-	return &domain{
+	domainInstance := &domain{
 		consensus:       &consensusInstance,
-		miningManager:   miningManager,
 		consensusConfig: consensusConfig,
 		db:              db,
-	}, nil
+	}
+
+	miningManagerFactory := miningmanager.NewFactory()
+
+	// We create a consensus wrapper because the actual consensus might change
+	consensusReference := consensusReference{consensus: &domainInstance.consensus}
+	domainInstance.miningManager = miningManagerFactory.NewMiningManager(consensusReference, &consensusConfig.Params, mempoolConfig)
+	return domainInstance, nil
+}
+
+type consensusReference struct {
+	consensus **externalapi.Consensus
+}
+
+func (wrapper consensusReference) Consensus() externalapi.Consensus {
+	return **wrapper.consensus
 }

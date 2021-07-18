@@ -9,17 +9,17 @@ import (
 
 // Factory instantiates new mining managers
 type Factory interface {
-	NewMiningManager(consensus externalapi.Consensus, params *dagconfig.Params, mempoolConfig *mempoolpkg.Config) MiningManager
+	NewMiningManager(consensus externalapi.ConsensusReference, params *dagconfig.Params, mempoolConfig *mempoolpkg.Config) MiningManager
 }
 
 type factory struct{}
 
 // NewMiningManager instantiate a new mining manager
-func (f *factory) NewMiningManager(consensus externalapi.Consensus, params *dagconfig.Params,
+func (f *factory) NewMiningManager(consensusReference externalapi.ConsensusReference, params *dagconfig.Params,
 	mempoolConfig *mempoolpkg.Config) MiningManager {
 
-	mempool := mempoolpkg.New(mempoolConfig, consensus)
-	blockTemplateBuilder := blocktemplatebuilder.New(consensus, mempool, params.MaxBlockMass)
+	mempool := mempoolpkg.New(mempoolConfig, consensusReference)
+	blockTemplateBuilder := blocktemplatebuilder.New(consensusReference, mempool, params.MaxBlockMass)
 
 	return &miningManager{
 		mempool:              mempool,
